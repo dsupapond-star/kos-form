@@ -84,11 +84,11 @@
         </div>
         <div class="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-2 w-full">
             <button onclick="openUserManage()" class="admin-only bg-red-600 text-white px-3 py-2 rounded shadow hover:bg-red-700 text-sm font-bold w-full sm:w-auto">⚙️ จัดการผู้ใช้</button>
-            <button onclick="openStock()" class="admin-only bg-amber-600 text-white px-3 py-2 rounded shadow hover:bg-amber-700 text-sm font-bold w-full sm:w-auto">📦 สต๊อกวัสดุ</button>
+            <button onclick="openStock()" class="admin-only bg-amber-600 text-white px-3 py-2 rounded shadow hover:bg-amber-700 text-sm font-bold w-full sm:w-auto">📦 สต๊อกสินค้า</button>
             <button onclick="openEmployees()" class="admin-only bg-teal-600 text-white px-3 py-2 rounded shadow hover:bg-teal-700 text-sm font-bold w-full sm:w-auto">👥 พนักงาน</button>
             <button onclick="openSummary()" class="admin-only bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700 text-sm font-bold w-full sm:w-auto">📊 สรุปต้นทุน</button>
             <button onclick="openHistory()" class="bg-gray-800 text-white px-3 py-2 rounded shadow hover:bg-gray-900 text-sm font-bold w-full sm:w-auto">📂 ประวัติ/Excel</button>
-            <button onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 text-sm font-bold shadow-lg border border-green-800 w-full sm:w-auto">💾 บันทึกข้อมูล</button>
+            <button onclick="saveData()" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 text-sm font-bold shadow-lg border border-green-800 w-full sm:w-auto">💾 บันทึกฟอร์ม</button>
         </div>
     </div>
 
@@ -159,11 +159,45 @@
         </div>
     </div>
 
+    <!-- Modal: สต๊อกสินค้า (Admin) แบบใหม่เพิ่มรหัส ขนาด และรูปภาพ -->
     <div id="stockModal" class="fixed inset-0 modal-bg hidden z-50 flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
-            <div class="p-3 sm:p-4 border-b flex justify-between items-center bg-amber-50 rounded-t-lg"><h2 class="text-lg sm:text-xl font-bold">📦 ฐานข้อมูลสต๊อกวัสดุ</h2><button onclick="closeModal('stockModal')" class="text-gray-500 hover:text-red-500 font-bold text-2xl px-2">&times;</button></div>
-            <div class="p-3 sm:p-4 bg-amber-50 border-b flex flex-col sm:flex-row gap-3 items-stretch sm:items-end"><div class="w-full sm:flex-1"><label class="text-sm font-bold">ชื่อวัสดุ / รายการ:</label><input type="text" id="newStockName" class="w-full border p-2 rounded focus:border-amber-500"></div><div class="w-full sm:w-24"><label class="text-sm font-bold">หน่วย:</label><input type="text" id="newStockUnit" class="w-full border p-2 rounded focus:border-amber-500"></div><div class="w-full sm:w-32"><label class="text-sm font-bold">ต้นทุน/หน่วย (฿):</label><input type="number" id="newStockPrice" class="w-full border p-2 rounded focus:border-amber-500"></div><button onclick="addStockItem()" class="w-full sm:w-auto bg-amber-600 text-white px-4 py-2 sm:py-2 rounded font-bold hover:bg-amber-700 shadow mt-2 sm:mt-0">เพิ่มข้อมูล</button></div>
-            <div class="p-3 sm:p-4 overflow-y-auto flex-1"><div class="overflow-x-auto border rounded"><table class="w-full text-sm text-left min-w-[500px]"><thead class="bg-gray-200"><tr><th class="p-2 border w-12 text-center">ลำดับ</th><th class="p-2 border">ชื่อรายการ</th><th class="p-2 border w-20 text-center">หน่วย</th><th class="p-2 border w-28 text-right">ต้นทุน/หน่วย</th><th class="p-2 border w-16 text-center">ลบ</th></tr></thead><tbody id="stockTableBody"></tbody></table></div></div>
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div class="p-3 sm:p-4 border-b flex justify-between items-center bg-amber-50 rounded-t-lg">
+                <h2 class="text-lg sm:text-xl font-bold">📦 ฐานข้อมูลสต๊อกสินค้า</h2>
+                <button onclick="closeModal('stockModal')" class="text-gray-500 hover:text-red-500 font-bold text-2xl px-2">&times;</button>
+            </div>
+            <div class="p-3 sm:p-4 bg-amber-50 border-b flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row gap-3 items-end">
+                    <div class="w-full sm:flex-1"><label class="text-sm font-bold">ชื่อสินค้า / รายการ:</label><input type="text" id="newStockName" class="w-full border p-2 rounded focus:border-amber-500" placeholder="เช่น ท่อ PVC"></div>
+                    <div class="w-full sm:w-32"><label class="text-sm font-bold">รหัสสินค้า:</label><input type="text" id="newStockCode" class="w-full border p-2 rounded focus:border-amber-500" placeholder="เช่น A001"></div>
+                    <div class="w-full sm:w-32"><label class="text-sm font-bold">ขนาด:</label><input type="text" id="newStockSize" class="w-full border p-2 rounded focus:border-amber-500" placeholder="เช่น 2 นิ้ว"></div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 items-end">
+                    <div class="w-full sm:w-24"><label class="text-sm font-bold">หน่วย:</label><input type="text" id="newStockUnit" class="w-full border p-2 rounded focus:border-amber-500" placeholder="ท่อน"></div>
+                    <div class="w-full sm:w-32"><label class="text-sm font-bold">ต้นทุน/หน่วย (฿):</label><input type="number" id="newStockPrice" class="w-full border p-2 rounded focus:border-amber-500" placeholder="0"></div>
+                    <div class="w-full sm:flex-1"><label class="text-sm font-bold">รูปถ่ายสินค้า (ย่อขนาดอัตโนมัติ):</label><input type="file" id="newStockPhoto" accept="image/*" onchange="handleStockPhoto(event)" class="w-full border p-1 rounded focus:border-amber-500 text-sm bg-white"></div>
+                    <button onclick="addStockItem()" class="w-full sm:w-auto bg-amber-600 text-white px-6 py-2 sm:py-2 rounded font-bold hover:bg-amber-700 shadow mt-2 sm:mt-0">เพิ่มข้อมูล</button>
+                </div>
+            </div>
+            <div class="p-3 sm:p-4 overflow-y-auto flex-1">
+                <div class="overflow-x-auto border rounded">
+                    <table class="w-full text-sm text-left min-w-[750px]">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="p-2 border w-10 text-center">ลำดับ</th>
+                                <th class="p-2 border w-16 text-center">รูปถ่าย</th>
+                                <th class="p-2 border w-24 text-center">รหัสสินค้า</th>
+                                <th class="p-2 border">ชื่อรายการ</th>
+                                <th class="p-2 border w-24 text-center">ขนาด</th>
+                                <th class="p-2 border w-20 text-center">หน่วย</th>
+                                <th class="p-2 border w-24 text-right">ต้นทุน/หน่วย</th>
+                                <th class="p-2 border w-12 text-center">ลบ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -196,6 +230,9 @@
                 <button onclick="exportToCSV()" class="mb-3 w-full sm:w-auto bg-green-600 text-white px-4 py-2 sm:py-2 text-sm rounded shadow font-bold">📊 ดาวน์โหลดข้อมูลเข้า Excel (CSV)</button>
                 <div class="overflow-x-auto border rounded"><table class="w-full text-sm text-left min-w-[700px]"><thead class="bg-gray-200"><tr><th class="p-2 border">วันที่</th><th class="p-2 border">โครงการ</th><th class="p-2 border">ผู้ทำรายการ</th><th class="p-2 border">ประเภท</th><th class="p-2 border">รายการ</th><th class="p-2 border text-center">จำนวน</th></tr></thead><tbody id="historyTableBody"></tbody></table></div>
             </div>
+            <div class="p-3 sm:p-4 border-t text-right">
+                <button onclick="clearHistory()" class="admin-only w-full sm:w-auto text-red-500 font-bold hover:underline p-2 border sm:border-none rounded mt-2 sm:mt-0">ลบประวัติทั้งหมด</button>
+            </div>
         </div>
     </div>
 
@@ -205,6 +242,7 @@
         
         let CACHE = { users: [], stock: [], emp:[], records:[] };
         let activeUser = null;
+        let tempStockPhoto = ""; // ตัวแปรเก็บรูปภาพสินค้าชั่วคราว
 
         // ================= ฟังก์ชันติดต่อ Google Sheets =================
         async function showLoader(text="กำลังประมวลผล...") {
@@ -256,12 +294,19 @@
         async function syncAllData() {
             showLoader("กำลังเชื่อมต่อฐานข้อมูล...");
             try {
-                const [u, s, e, r] = await Promise.all([ fetchSheetData('Users'), fetchSheetData('Stock'), fetchSheetData('Employees'), fetchSheetData('Records') ]);
+                const[u, s, e, r] = await Promise.all([ fetchSheetData('Users'), fetchSheetData('Stock'), fetchSheetData('Employees'), fetchSheetData('Records') ]);
                 
-                // แปลงข้อมูลทุกอย่างให้เป็น "ข้อความ (String)" ป้องกันปัญหาตัวเลข
+                // ดึงข้อมูลและเผื่อรับค่าใหม่ๆ เช่น รหัส ขนาด รูปภาพ
                 CACHE.users = u.map(r => ({name: String(r[0]), username: String(r[1]), password: String(r[2]), role: String(r[3]), status: String(r[4])}));
-                CACHE.stock = s.map(r => ({name: String(r[0]), unit: String(r[1]), price: Number(r[2]) || 0}));
-                CACHE.emp = e.map(r => ({name: String(r[0]), wage: Number(r[1]) || 0}));
+                CACHE.stock = s.map(r => ({
+                    name: String(r[0]||''), 
+                    unit: String(r[1]||''), 
+                    price: Number(r[2])||0, 
+                    code: String(r[3]||''), 
+                    size: String(r[4]||''), 
+                    photo: String(r[5]||'')
+                }));
+                CACHE.emp = e.map(r => ({name: String(r[0]), wage: Number(r[1])||0}));
                 CACHE.records = r.map(r => {
                     let items =[]; try { items = JSON.parse(r[6]); } catch(err){}
                     return {id: String(r[0]), user: String(r[1]), timestamp: r[2], date: String(r[3]), project: String(r[4]), type: String(r[5]), items: items};
@@ -314,7 +359,6 @@
             
             showLoader("กำลังตรวจสอบข้อมูล...");
             let rawU = await fetchSheetData('Users');
-            // แปลงรหัสผ่านที่โหลดมาให้เป็น String ชัวร์ๆ
             CACHE.users = rawU.map(r => ({name: String(r[0]), username: String(r[1]), password: String(r[2]), role: String(r[3]), status: String(r[4])}));
             hideLoader();
 
@@ -425,30 +469,78 @@
             }
         }
 
+        // ================= ย่อรูปลงสต๊อก =================
+        function handleStockPhoto(event) {
+            const file = event.target.files[0]; 
+            if (!file) { tempStockPhoto = ""; return; }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas'); 
+                    const ctx = canvas.getContext('2d');
+                    // บีบให้กว้างไม่เกิน 200px เพื่อให้เซฟลง Google Sheets ได้แบบไม่ error
+                    const MAX_WIDTH = 200; 
+                    let width = img.width, height = img.height;
+                    if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height; 
+                    ctx.drawImage(img, 0, 0, width, height);
+                    tempStockPhoto = canvas.toDataURL('image/jpeg', 0.6);
+                }; 
+                img.src = e.target.result;
+            }; 
+            reader.readAsDataURL(file);
+        }
+
         // ================= Stock UI =================
         async function openStock() {
             showLoader("กำลังดึงสต๊อก...");
             let rawS = await fetchSheetData('Stock');
-            CACHE.stock = rawS.map(r => ({name: String(r[0]), unit: String(r[1]), price: Number(r[2])||0}));
+            CACHE.stock = rawS.map(r => ({name: String(r[0]||''), unit: String(r[1]||''), price: Number(r[2])||0, code: String(r[3]||''), size: String(r[4]||''), photo: String(r[5]||'')}));
             hideLoader(); renderStock(); document.getElementById('stockModal').classList.remove('hidden');
         }
         function renderStock() {
-            document.getElementById('stockTableBody').innerHTML = CACHE.stock.map((x, i) => `<tr class="border-b"><td class="p-2 border-r text-center">${i+1}</td><td class="p-2 border-r">${x.name}</td><td class="p-2 border-r text-center">${x.unit}</td><td class="p-2 border-r text-right">${Number(x.price).toLocaleString()}</td><td class="p-2 text-center"><button onclick="delStock(${i})" class="text-red-500 font-bold px-2">ลบ</button></td></tr>`).join('') || `<tr><td colspan="5" class="text-center p-4 text-gray-400">ยังไม่มีรายการ</td></tr>`;
+            document.getElementById('stockTableBody').innerHTML = CACHE.stock.map((x, i) => `
+                <tr class="border-b">
+                    <td class="p-2 border-r text-center">${i+1}</td>
+                    <td class="p-2 border-r text-center">${x.photo ? '<img src="'+x.photo+'" class="mx-auto max-h-10 rounded">' : '-'}</td>
+                    <td class="p-2 border-r text-center">${x.code || '-'}</td>
+                    <td class="p-2 border-r font-bold">${x.name}</td>
+                    <td class="p-2 border-r text-center">${x.size || '-'}</td>
+                    <td class="p-2 border-r text-center">${x.unit}</td>
+                    <td class="p-2 border-r text-right text-orange-600">${Number(x.price).toLocaleString()}</td>
+                    <td class="p-2 text-center"><button onclick="delStock(${i})" class="text-red-500 font-bold px-2">ลบ</button></td>
+                </tr>`).join('') || `<tr><td colspan="8" class="text-center p-4 text-gray-400">ยังไม่มีรายการสินค้าในสต๊อก</td></tr>`;
             updateDatalist();
         }
         async function addStockItem() {
-            const name = document.getElementById('newStockName').value.trim(), unit = document.getElementById('newStockUnit').value.trim(), price = document.getElementById('newStockPrice').value || 0;
-            if(!name) return alert("กรุณาใส่ชื่อวัสดุ");
-            showLoader("กำลังเพิ่มข้อมูล...");
-            await appendData('Stock', [name, unit, price]);
-            CACHE.stock.push({name: name, unit: unit, price: Number(price)});
-            document.getElementById('newStockName').value = ''; document.getElementById('newStockUnit').value = ''; document.getElementById('newStockPrice').value = ''; 
+            const name = document.getElementById('newStockName').value.trim();
+            const code = document.getElementById('newStockCode').value.trim();
+            const size = document.getElementById('newStockSize').value.trim();
+            const unit = document.getElementById('newStockUnit').value.trim();
+            const price = document.getElementById('newStockPrice').value || 0;
+            
+            if(!name) return alert("กรุณาใส่ชื่อวัสดุ / รายการ");
+            showLoader("กำลังเพิ่มข้อมูลลงฐานข้อมูล...");
+            
+            await appendData('Stock', [name, unit, price, code, size, tempStockPhoto]);
+            CACHE.stock.push({name: name, unit: unit, price: Number(price), code: code, size: size, photo: tempStockPhoto});
+            
+            document.getElementById('newStockName').value = '';
+            document.getElementById('newStockCode').value = '';
+            document.getElementById('newStockSize').value = '';
+            document.getElementById('newStockUnit').value = ''; 
+            document.getElementById('newStockPrice').value = ''; 
+            document.getElementById('newStockPhoto').value = '';
+            tempStockPhoto = "";
+
             hideLoader(); renderStock();
         }
         async function delStock(i) {
             CACHE.stock.splice(i,1);
             showLoader("กำลังลบ...");
-            await overwriteData('Stock', CACHE.stock.map(s => [s.name, s.unit, s.price]));
+            await overwriteData('Stock', CACHE.stock.map(s =>[s.name, s.unit, s.price, s.code, s.size, s.photo]));
             hideLoader(); renderStock();
         }
 
