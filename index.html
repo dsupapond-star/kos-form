@@ -62,7 +62,6 @@
                 <span class="text-gray-400">ยังไม่มีบัญชี?</span>
                 <button onclick="toggleAuthMode('register')" class="text-blue-600 font-bold hover:underline p-1">สมัครใช้งาน</button>
             </div>
-            <p class="text-[11px] text-red-500 mt-4">*ระบบ Admin เริ่มต้น Username: admin / Pass: 1234</p>
         </div>
         <div id="registerForm" class="bg-white p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-sm text-center hidden">
             <h1 class="text-3xl font-bold text-blue-700 mb-2">สมัครสมาชิก</h1>
@@ -204,8 +203,7 @@
         // ================= ลิงก์ API Google Sheets =================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4ikzrmgEHlotvJB8L2kOJszx-XJ-2l0SXiJZuUNaSjl0BvQIeiYfsfHzfo8hiG2YNaQ/exec';
         
-        // ตัวแปรเก็บข้อมูลชั่วคราว (เพื่อความเร็ว)
-        let CACHE = { users: [], stock: [], emp: [], records:[] };
+        let CACHE = { users: [], stock: [], emp:[], records:[] };
         let activeUser = null;
 
         // ================= ฟังก์ชันติดต่อ Google Sheets =================
@@ -225,17 +223,13 @@
 
         async function appendData(sheetName, rowArray) {
             await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({action: 'append', sheet: sheetName, row: rowArray}),
-                headers: {'Content-Type': 'text/plain;charset=utf-8'}
+                method: 'POST', body: JSON.stringify({action: 'append', sheet: sheetName, row: rowArray}), headers: {'Content-Type': 'text/plain;charset=utf-8'}
             });
         }
 
         async function overwriteData(sheetName, rowsArray) {
             await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({action: 'writeAll', sheet: sheetName, rows: rowsArray}),
-                headers: {'Content-Type': 'text/plain;charset=utf-8'}
+                method: 'POST', body: JSON.stringify({action: 'writeAll', sheet: sheetName, rows: rowsArray}), headers: {'Content-Type': 'text/plain;charset=utf-8'}
             });
         }
 
@@ -243,10 +237,8 @@
         document.addEventListener("DOMContentLoaded", async function() {
             document.getElementById('docDate').value = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
             
-            // โหลดข้อมูลทั้งหมดจาก Sheets
             await syncAllData();
 
-            // โหลดโลโก้จากเครื่อง
             const savedLogo = localStorage.getItem("kositd8_logo_base64");
             if (savedLogo) {
                 document.getElementById('logoDisplay').src = savedLogo;
@@ -264,24 +256,16 @@
         async function syncAllData() {
             showLoader("กำลังเชื่อมต่อฐานข้อมูล...");
             try {
-                const [u, s, e, r] = await Promise.all([
-                    fetchSheetData('Users'), fetchSheetData('Stock'), fetchSheetData('Employees'), fetchSheetData('Records')
-                ]);
+                const [u, s, e, r] = await Promise.all([ fetchSheetData('Users'), fetchSheetData('Stock'), fetchSheetData('Employees'), fetchSheetData('Records') ]);
                 
-                CACHE.users = u.map(r => ({name: r[0], username: r[1], password: r[2], role: r[3], status: r[4]}));
-                CACHE.stock = s.map(r => ({name: r[0], unit: r[1], price: r[2]}));
-                CACHE.emp = e.map(r => ({name: r[0], wage: r[1]}));
+                // แปลงข้อมูลทุกอย่างให้เป็น "ข้อความ (String)" ป้องกันปัญหาตัวเลข
+                CACHE.users = u.map(r => ({name: String(r[0]), username: String(r[1]), password: String(r[2]), role: String(r[3]), status: String(r[4])}));
+                CACHE.stock = s.map(r => ({name: String(r[0]), unit: String(r[1]), price: Number(r[2]) || 0}));
+                CACHE.emp = e.map(r => ({name: String(r[0]), wage: Number(r[1]) || 0}));
                 CACHE.records = r.map(r => {
                     let items =[]; try { items = JSON.parse(r[6]); } catch(err){}
-                    return {id: r[0], user: r[1], timestamp: r[2], date: r[3], project: r[4], type: r[5], items: items};
+                    return {id: String(r[0]), user: String(r[1]), timestamp: r[2], date: String(r[3]), project: String(r[4]), type: String(r[5]), items: items};
                 });
-
-                // สร้าง Admin อัตโนมัติถ้าฐานข้อมูลว่าง
-                if(CACHE.users.length === 0) {
-                    let admin =['ผู้ดูแลระบบ (Admin)', 'admin', '1234', 'admin', 'approved'];
-                    await appendData('Users', admin);
-                    CACHE.users.push({name: admin[0], username: admin[1], password: admin[2], role: admin[3], status: admin[4]});
-                }
             } catch(e) { alert("เกิดข้อผิดพลาดในการโหลดข้อมูลจาก Google Sheets"); }
             hideLoader();
         }
@@ -293,12 +277,10 @@
                 document.getElementById('loginOverlay').classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             } else {
-                // เช็คสิทธิ์ล่าสุดจากฐานข้อมูลเผื่อโดนลบ
                 const liveUser = CACHE.users.find(x => x.username === activeUser.username);
-                if(!liveUser || liveUser.status !== 'approved') {
-                    doLogout(); return;
-                }
-                activeUser = liveUser; // อัปเดตข้อมูลให้ตรงกับ Cloud
+                if(!liveUser || liveUser.status !== 'approved') { doLogout(); return; }
+                
+                activeUser = liveUser; 
                 localStorage.setItem('kositd8_active_user', JSON.stringify(activeUser));
 
                 document.getElementById('loginOverlay').classList.add('hidden');
@@ -332,11 +314,12 @@
             
             showLoader("กำลังตรวจสอบข้อมูล...");
             let rawU = await fetchSheetData('Users');
-            CACHE.users = rawU.map(r => ({name: r[0], username: r[1], password: r[2], role: r[3], status: r[4]}));
+            // แปลงรหัสผ่านที่โหลดมาให้เป็น String ชัวร์ๆ
+            CACHE.users = rawU.map(r => ({name: String(r[0]), username: String(r[1]), password: String(r[2]), role: String(r[3]), status: String(r[4])}));
             hideLoader();
 
             let user = CACHE.users.find(x => x.username === u && x.password === p);
-            if(!user) return alert("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+            if(!user) return alert("❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง\n\n(หากเพิ่งแก้ใน Google Sheets ให้ Refresh หน้าเว็บ 1 รอบครับ)");
             if(user.status !== 'approved') return alert("⚠️ บัญชีของคุณรอการอนุมัติจาก Admin ครับ");
             
             localStorage.setItem('kositd8_active_user', JSON.stringify(user));
@@ -364,10 +347,9 @@
         async function openUserManage() {
             showLoader("ดึงข้อมูลผู้ใช้...");
             let rawU = await fetchSheetData('Users');
-            CACHE.users = rawU.map(r => ({name: r[0], username: r[1], password: r[2], role: r[3], status: r[4]}));
+            CACHE.users = rawU.map(r => ({name: String(r[0]), username: String(r[1]), password: String(r[2]), role: String(r[3]), status: String(r[4])}));
             hideLoader();
-            renderUsers();
-            document.getElementById('userManageModal').classList.remove('hidden');
+            renderUsers(); document.getElementById('userManageModal').classList.remove('hidden');
         }
 
         function renderUsers() {
@@ -447,7 +429,7 @@
         async function openStock() {
             showLoader("กำลังดึงสต๊อก...");
             let rawS = await fetchSheetData('Stock');
-            CACHE.stock = rawS.map(r => ({name: r[0], unit: r[1], price: r[2]}));
+            CACHE.stock = rawS.map(r => ({name: String(r[0]), unit: String(r[1]), price: Number(r[2])||0}));
             hideLoader(); renderStock(); document.getElementById('stockModal').classList.remove('hidden');
         }
         function renderStock() {
@@ -459,7 +441,7 @@
             if(!name) return alert("กรุณาใส่ชื่อวัสดุ");
             showLoader("กำลังเพิ่มข้อมูล...");
             await appendData('Stock', [name, unit, price]);
-            CACHE.stock.push({name, unit, price});
+            CACHE.stock.push({name: name, unit: unit, price: Number(price)});
             document.getElementById('newStockName').value = ''; document.getElementById('newStockUnit').value = ''; document.getElementById('newStockPrice').value = ''; 
             hideLoader(); renderStock();
         }
@@ -474,7 +456,7 @@
         async function openEmployees() {
             showLoader("กำลังดึงข้อมูลพนักงาน...");
             let rawE = await fetchSheetData('Employees');
-            CACHE.emp = rawE.map(r => ({name: r[0], wage: r[1]}));
+            CACHE.emp = rawE.map(r => ({name: String(r[0]), wage: Number(r[1])||0}));
             hideLoader(); renderEmp(); document.getElementById('empModal').classList.remove('hidden');
         }
         function renderEmp() {
@@ -486,7 +468,7 @@
             if(!name) return alert("กรุณาใส่ชื่อพนักงาน");
             showLoader("กำลังเพิ่มข้อมูล...");
             await appendData('Employees', [name, wage]);
-            CACHE.emp.push({name, wage});
+            CACHE.emp.push({name: name, wage: Number(wage)});
             document.getElementById('newEmpName').value = ''; document.getElementById('newEmpWage').value = ''; 
             hideLoader(); renderEmp();
         }
@@ -512,15 +494,14 @@
             let newId = 'REQ-'+Date.now();
             await appendData('Records',[newId, activeUser.name, Date.now(), date, project, type, JSON.stringify(items)]);
             CACHE.records.push({ id: newId, user: activeUser.name, timestamp: Date.now(), date, project, type, items });
-            
             hideLoader();
             alert("บันทึกข้อมูลเรียบร้อย!");
         }
 
         async function openPullReq() {
-            showLoader("กำลังค้นหาประวัติใบเบิก...");
+            showLoader("กำลังค้นหาประวัติ...");
             let rawR = await fetchSheetData('Records');
-            CACHE.records = rawR.map(r => { let items = []; try { items = JSON.parse(r[6]); } catch(err){} return {id: r[0], user: r[1], timestamp: r[2], date: r[3], project: r[4], type: r[5], items: items}; });
+            CACHE.records = rawR.map(r => { let items = []; try { items = JSON.parse(r[6]); } catch(err){} return {id: String(r[0]), user: String(r[1]), timestamp: r[2], date: String(r[3]), project: String(r[4]), type: String(r[5]), items: items}; });
             hideLoader();
 
             const db = CACHE.records.filter(r => r.type === 'ใบเบิกวัสดุ').reverse();
@@ -528,9 +509,7 @@
             if(db.length===0) list.innerHTML = "<p class='text-red-500 text-center py-4'>ไม่พบประวัติใบเบิกวัสดุในระบบ</p>";
             else list.innerHTML = db.map(r => `
                 <div class="border p-3 sm:p-4 rounded hover:bg-blue-50 cursor-pointer shadow-sm bg-white" onclick='doPullReq(${JSON.stringify(r.items)})'>
-                    <div class="flex flex-col sm:flex-row justify-between font-bold text-blue-800">
-                        <span>โครงการ: ${r.project}</span><span class="text-sm mt-1 sm:mt-0 text-blue-600">${r.date}</span>
-                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between font-bold text-blue-800"><span>โครงการ: ${r.project}</span><span class="text-sm mt-1 sm:mt-0 text-blue-600">${r.date}</span></div>
                     <div class="text-xs text-gray-500 mt-2">ผู้เบิก: ${r.user} | จำนวน: ${r.items.length} รายการ</div>
                 </div>`).join('');
             document.getElementById('pullReqModal').classList.remove('hidden');
@@ -545,7 +524,7 @@
         async function openSummary() {
             showLoader("กำลังคำนวณต้นทุน...");
             let rawR = await fetchSheetData('Records');
-            CACHE.records = rawR.map(r => { let items =[]; try { items = JSON.parse(r[6]); } catch(err){} return {id: r[0], user: r[1], timestamp: r[2], date: r[3], project: r[4], type: r[5], items: items}; });
+            CACHE.records = rawR.map(r => { let items =[]; try { items = JSON.parse(r[6]); } catch(err){} return {id: String(r[0]), user: String(r[1]), timestamp: r[2], date: String(r[3]), project: String(r[4]), type: String(r[5]), items: items}; });
             hideLoader();
 
             let summary = {};
@@ -566,7 +545,7 @@
         async function openHistory() {
             showLoader("กำลังดึงประวัติ...");
             let rawR = await fetchSheetData('Records');
-            CACHE.records = rawR.map(r => { let items =[]; try { items = JSON.parse(r[6]); } catch(err){} return {id: r[0], user: r[1], timestamp: r[2], date: r[3], project: r[4], type: r[5], items: items}; });
+            CACHE.records = rawR.map(r => { let items =[]; try { items = JSON.parse(r[6]); } catch(err){} return {id: String(r[0]), user: String(r[1]), timestamp: r[2], date: String(r[3]), project: String(r[4]), type: String(r[5]), items: items}; });
             hideLoader();
 
             document.getElementById('historyTableBody').innerHTML = CACHE.records.slice().reverse().map(r => r.items.map((i, idx) => `
